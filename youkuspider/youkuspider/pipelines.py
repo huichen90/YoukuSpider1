@@ -12,8 +12,8 @@ from scrapy.utils.project import get_project_settings
 
 from youkuspider.videodownload import VdieoDownload
 
-
-class YoukuspiderPipeline(object):
+class Mysql(object):
+    """存储到数据库中"""
 
     def __init__(self):
         settings = get_project_settings()
@@ -39,6 +39,10 @@ class YoukuspiderPipeline(object):
     def colose_spider(self,spider):
         self.conn.close()
         self.cursor.close()
+
+
+class YoukuspiderPipeline(Mysql):
+
     def process_item(self, item, spider):
         try:
             d = VdieoDownload(db=self.conn,cursor=self.cursor)
@@ -49,29 +53,8 @@ class YoukuspiderPipeline(object):
         return item
 
 
-class MysqlPipeline(object):
+class MysqlPipeline(Mysql):
     """存储到数据库中"""
-
-    def __init__(self):
-        settings = get_project_settings()
-        self.host = settings["DB_HOST"]
-        self.port = settings["DB_PORT"]
-        self.user = settings["DB_USER"]
-        self.pwd = settings["DB_PWD"]
-        self.name = settings["DB_NAME"]
-        self.charset = settings["DB_CHARSET"]
-
-        self.connect()
-
-    def connect(self):
-        self.conn = pymysql.connect(host = self.host,
-                                    port = self.port,
-                                    user = self.user,
-                                    password = self.pwd,
-                                    db = self.name,
-                                    charset = self.charset)
-        self.cursor = self.conn.cursor()
-
 
     def colose_spider(self,spider):
         self.conn.close()
