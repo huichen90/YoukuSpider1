@@ -8,12 +8,12 @@ import pymysql
 from scrapy.utils.project import get_project_settings
 from youkuspider.items import YoukuspiderItem
 
-from youkuspider.videodownload import VdieoDownload
+# from youkuspider.videodownload import VdieoDownload
 
 
 class YoukuSpider(scrapy.Spider):
     name = 'youku'
-    def __init__(self,keywords = '啦啦',limit=600,taskId = 3,startDate=int(time.time())-3600*24,endDate=int(time.time()),num=5,*args,**kwargs):
+    def __init__(self,keywords='金正恩',limit=600,taskId=3,startDate=int(time.time())-3600*48,endDate=int(time.time()),num=5,*args,**kwargs):
         super(YoukuSpider, self).__init__(*args, **kwargs)
         self.keywords = keywords
         # keywords = 'hello'
@@ -30,31 +30,31 @@ class YoukuSpider(scrapy.Spider):
         self.page = 1
         self.start_urls = [self.url1+'1']
 
-        settings = get_project_settings()
-        self.host = settings["DB_HOST"]
-        self.port = settings["DB_PORT"]
-        self.user = settings["DB_USER"]
-        self.pwd = settings["DB_PWD"]
-        self.name = settings["DB_NAME"]
-        self.charset = settings["DB_CHARSET"]
-        self.connect()
-        self.spider_random_id = self.random_string()
-        self.cursor.execute('insert into running_job(spider_random_id) values("%s") '%(self.spider_random_id))
-        self.conn.commit()
-    def connect(self):
-        self.conn = pymysql.connect(host = self.host,
-                                    port = self.port,
-                                    user = self.user,
-                                    password = self.pwd,
-                                    db = self.name,
-                                    charset = self.charset)
-        self.cursor = self.conn.cursor()
+    #     settings = get_project_settings()
+    #     self.host = settings["DB_HOST"]
+    #     self.port = settings["DB_PORT"]
+    #     self.user = settings["DB_USER"]
+    #     self.pwd = settings["DB_PWD"]
+    #     self.name = settings["DB_NAME"]
+    #     self.charset = settings["DB_CHARSET"]
+    #     self.connect()
+    #     self.spider_random_id = self.random_string()
+    #     self.cursor.execute('insert into running_job(spider_random_id) values("%s") '%(self.spider_random_id))
+    #     self.conn.commit()
+    # def connect(self):
+    #     self.conn = pymysql.connect(host = self.host,
+    #                                 port = self.port,
+    #                                 user = self.user,
+    #                                 password = self.pwd,
+    #                                 db = self.name,
+    #                                 charset = self.charset)
+    #     self.cursor = self.conn.cursor()
 
     # 生成随机的字符串
-    def random_string(self,length=10):
-        import random
-        base_str = 'abcdefghijklmnopqrstuvwxyz1234567890'
-        return ''.join(random.choice(base_str) for i in range(length))
+    # def random_string(self,length=10):
+    #     import random
+    #     base_str = 'abcdefghijklmnopqrstuvwxyz1234567890'
+    #     return ''.join(random.choice(base_str) for i in range(length))
     def parse(self, response):
 
         div_list = response.xpath('//div[@class="sk_result"]//div[@class="v"]')
@@ -144,19 +144,19 @@ class YoukuSpider(scrapy.Spider):
         import datetime
         import os
         #删除运行id
-        print('..................')
-        self.cursor.execute('delete from running_job where spider_random_id="%s" ' % (self.spider_random_id))
-        self.conn.commit()
-        self.cursor.execute('select * from running_job')
-        time.sleep(10)
-        if self.cursor.fetchall() == ():
-            print("开始下载.....")
-            for i in range(self.num):
-                try:
-                    d = VdieoDownload(db=self.conn,cursor=self.cursor)
-                    d.Automatic_download()
-                except EOFError as e:
-                    logging.error('下载失败 %s'%e)
+        # print('..................')
+        # self.cursor.execute('delete from running_job where spider_random_id="%s" ' % (self.spider_random_id))
+        # self.conn.commit()
+        # self.cursor.execute('select * from running_job')
+        # time.sleep(10)
+        # if self.cursor.fetchall() == ():
+        #     print("开始下载.....")
+        #     for i in range(self.num):
+        #         try:
+        #             d = VdieoDownload(db=self.conn,cursor=self.cursor)
+        #             d.Automatic_download()
+        #         except EOFError as e:
+        #             logging.error('下载失败 %s'%e)
 
         dt = datetime.datetime.now().strftime("%Y-%m-%d")
 
@@ -168,7 +168,7 @@ class YoukuSpider(scrapy.Spider):
                 size = os.path.getsize(os.path.join(root, each))  # 获取文件大小
                 sizes += size
                 count += 1  # 统计文件夹下文件个数
-        count = count/2
+        count = int(count/2)
         sizes = sizes / 1024.0 / 1024.0
         sizes = round(sizes, 2)
         videojson = {}
@@ -182,8 +182,8 @@ class YoukuSpider(scrapy.Spider):
         with open(self.keywords+"/"+dt+ "/"+"task_info.json",'w',encoding='utf-8' ) as fq:
             fq.write(videojson)
         print("spider closed")
-        self.conn.close()
-        self.cursor.close()
+        # self.conn.close()
+        # self.cursor.close()
 
 
 
