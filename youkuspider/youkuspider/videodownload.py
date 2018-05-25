@@ -134,15 +134,15 @@ class VdieoDownload(object):
         import threading
         l = threading.Lock()
         l.acquire()
-        if self._Query():
-            self.UpdateStatus(num=1)
-            try:
+        self._Query()
+        self.UpdateStatus(num=1)
+        try:
                 self.Download()
+                self.UpdateStatus(num=2)
                 self.WriteJson()
                 self.AddVideoJson()
 
-                self.UpdateStatus(num=2)
-            except EOFError as e:
+        except EOFError as e:
                 print(e)
                 print('下载失败')
                 self.UpdateStatus(num=3)
